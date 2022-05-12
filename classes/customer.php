@@ -1,5 +1,5 @@
 <?php
-    include_once __DIR__ . ("/creditCard.php");
+    include_once __DIR__ . "/creditCard.php";
     include_once __DIR__ . "/idable.php";
 
     class Customer{
@@ -11,6 +11,7 @@
         protected $birthDate;
         protected $isRegistered;
         protected $creditCards = [];
+        protected $cart = [];
 
         function __construct(string $firstName, string $lastName, string $email, string $birthDate, $isRegistered, CreditCard $card = NULL){
 
@@ -43,7 +44,7 @@
             }
         }
 
-        protected function setBirthDate(string $birthDate){
+        public function setBirthDate(string $birthDate){
             $tempArray = explode('/', $birthDate);
             $tempDate = $tempArray[1] . "/" . $tempArray[0] . "/". $tempArray[2];
 
@@ -52,7 +53,7 @@
             }
         }
 
-        protected function setIsRegistered($isRegistered){
+        public function setIsRegistered($isRegistered){
             if(is_bool($isRegistered) === true){
                 return $isRegistered;
             }
@@ -64,5 +65,23 @@
 
         public function addCreditCard(CreditCard $card){
             $this->creditCards[] = $card;
+        }
+
+        public function addToCart($item){
+            $this->cart[] = $item;
+        }
+
+        public function removeFromCart($item){
+            foreach ($this->cart as $key => $value) {
+                if($value->getId() == $item->getId()){
+                    unset($this->cart[$key]);
+                }
+            }
+        }
+
+        public function buy(){
+            foreach ($this->cart as $key => $value) {
+                # code...
+            }
         }
     }
