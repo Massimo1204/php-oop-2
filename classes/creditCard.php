@@ -3,16 +3,18 @@
         protected $code;
         protected $expirationDate;
         protected $securityCode;
+        protected $balance;
 
-        function __construct(string $code, string $expirationDate, string $securityCode){
-            $this->code = $this->setCode($code);
-            $this->expirationDate = $this->setExpirationDate($expirationDate);
-            $this->securityCode = $this->setSecurityCode($securityCode);
+        function __construct(string $code, string $expirationDate, string $securityCode, float $balance){
+            $this->setCode($code);
+            $this->setExpirationDate($expirationDate);
+            $this->setSecurityCode($securityCode);
+            $this->setBalance($balance);
         }
 
         protected function setCode($code){
             if(ctype_digit($code) && strlen((string) $code) == 16){
-                return $code;
+                $this->code = $code;
             }
         }
 
@@ -21,13 +23,35 @@
             $tempDate = $tempArray[0] . "/01/" . $tempArray[1];
 
             if (DateTime::createFromFormat('d/m/Y', $tempDate) !== false && date('Y-m-d', strtotime($tempDate)) != '1970-01-01') {
-                return date('Y-m-d', strtotime($tempDate));
+                $this->expirationDate = date('Y-m-d', strtotime($tempDate));
             }
         }
 
         protected function setSecurityCode($securityCode){
             if(ctype_digit($securityCode) && strlen($securityCode) == 3){
-                return $securityCode;
+                $this->securityCode = $securityCode;
             }
+        }
+
+        public function setBalance($balance){
+            if(is_numeric($balance)){
+                $this->balance = number_format($balance, 2, '.', '');
+            }
+        }
+
+        public function getCode(){
+            return $this->code;
+        }
+
+        public function getExpirationDate(){
+            return $this->expirationDate;
+        }
+
+        public function getSecurityCode(){
+            return $this->securityCode;
+        }
+
+        public function getBalance(){
+            return $this->balance;
         }
     }

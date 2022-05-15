@@ -15,60 +15,71 @@
 
         function __construct(string $firstName, string $lastName, string $email, string $birthDate, $isRegistered, CreditCard $card = NULL){
 
-            $this->id = $this->setId();
-
-            $this->firstName = $this->setFirstName($firstName);
-            $this->lastName = $this->setLastName($lastName);
-            $this->email = $this->setEmail($email);
-            $this->birthDate = $this->setBirthDate($birthDate);
-            $this->isRegistered = $this->setIsRegistered($isRegistered);
-            $this->creditCards[] = $this->setCreditCard($card);
+            $this->setFirstName($firstName);
+            $this->setLastName($lastName);
+            $this->setEmail($email);
+            $this->setBirthDate($birthDate);
+            $this->setIsRegistered($isRegistered);
+            $this->setCreditCard($card);
         }
 
         public function setFirstName($firstName){
             if(ctype_alpha($firstName)){
-                return $firstName;
+                $this->firstName = $firstName;
             }
         }
 
-        public function setLastName(string $lastName){
+        public function setLastName($lastName){
             if(ctype_alpha($lastName)){
-                return $lastName;
+                $this->lastName = $lastName;
             }
         }
 
-        public function setEmail(string $email){
+        public function setEmail($email){
             if(strpos($email, '@') !== false && strpos($email, '.') > strpos($email, '@') + 1)
             {
-                return $email;
+                $this->email = $email;
             }
         }
 
-        public function setBirthDate(string $birthDate){
-            $tempArray = explode('/', $birthDate);
-            $tempDate = $tempArray[1] . "/" . $tempArray[0] . "/". $tempArray[2];
-
-            if(DateTime::createFromFormat('d/m/Y', $birthDate) !== false && date('Y-m-d', strtotime($tempDate)) != '1970-01-01') {
-                return date('Y-m-d', strtotime($tempDate));
+        public function setBirthDate($birthDate){
+            if(DateTime::createFromFormat('d/m/Y', $birthDate) !== false && date('Y-m-d', strtotime($this->dateConverter($birthDate))) != '1970-01-01' && date('Y-m-d', strtotime($this->dateConverter($birthDate))) < date('Y-m-d')) {
+                $this->birthDate = date('Y-m-d', strtotime($this->dateConverter($birthDate)));
             }
+        }
+
+        protected function dateConverter($date){
+            $tempArray = explode('/', $date);
+            return $tempArray[1] . "/" . $tempArray[0] . "/". $tempArray[2];
         }
 
         public function setIsRegistered($isRegistered){
             if(is_bool($isRegistered) === true){
-                return $isRegistered;
+                $this->isRegistered =  $isRegistered;
             }
         }
 
-        public function setCreditCard(CreditCard $card){
-            return $card;
-        }
-
-        public function addCreditCard(CreditCard $card){
+        public function setCreditCard($card){
             $this->creditCards[] = $card;
         }
 
+        public function removeCreditCard($card){
+            foreach ($this->creditCards as $key => $value) {
+                if($value->getCode() == $card->getCode() && $value->getSecurityCode() == $card->getSecurityCode() && $value->getExpirationDate() == $card->getExpirationDate()){
+                    unset($this->creditCards[$key]);
+                }
+            }
+        }
+
         public function addToCart($item){
-            $this->cart[] = $item;
+            $period = $item->getAvailabilityPeriod();
+            if($period){
+                if($period[0] < date('Y-m-d') && $period[1] > date('Y-m-d')){
+                    $this->cart[] = $item;
+                }
+            }else{
+                $this->cart[] = $item;
+            }
         }
 
         public function removeFromCart($item){
@@ -79,9 +90,43 @@
             }
         }
 
-        public function buy(){
+        public function calcTotalPrice(){
+            $totalPrice = 0;
             foreach ($this->cart as $key => $value) {
-                # code...
+                $totalPrice += $value->getPrice($this->isRegistered);
             }
+            return $totalPrice;
+        }
+
+        public function proceedBuy($card){
+            if($card->getBalance() > $this->calcTotalPrice() && $card->getExpirationDate() >= date('Y-m-d')){
+                $newBalance = $card->getBalance() - $this->calcTotalPrice();
+                $card->setBalance($newBalance);
+                $this->cart = [];
+            }
+        }
+
+        public function getFirstName(){
+            return $this->firstName;
+        }
+
+        public function getLastName(){
+            return $this->lastName;
+        }
+
+        public function getEmail(){
+            return $this->email;
+        }
+
+        public function getIsRegistered(){
+            return $this->isRegistered;
+        }
+
+        public function getCreditCards(){
+            return $this->creditCards;
+        }
+
+        public function getCart(){
+            return $this->cart;
         }
     }

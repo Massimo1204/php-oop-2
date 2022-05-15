@@ -12,34 +12,48 @@
 
         function __construct(string $name, float $price, string $description, array $availabilityPeriod = null){
             
+            $this->setName($name);
+            $this->setPrice($price);
+            $this->setDescription($description);
+            $this->setAvailabilityPeriod($availabilityPeriod); 
+        }
+
+        public function setName($name){
             $this->name = $name;
-            $this->price = $price;
-            $this->description = $description;
         }
 
-        public function setName(string $name){
-            $this->name = $name;
-        }
-
-        public function setPrice(float $price){
-            $this->price = $price;
-        }
-
-        public function setDescription(string $description){
-            $this->description = $description;
-        }
-
-        public function setAvailabilityPeriod(string $from, string $to){
-            if(DateTime::createFromFormat('d/m/Y', $from) !== false && date('Y-m-d', strtotime($from)) != '1970-01-01' && (DateTime::createFromFormat('d/m/Y', $to) !== false && date('Y-m-d', strtotime($to)) != '1970-01-01')){
-                $this->availabilityPeriod = [ date('Y-m-d', strtotime($from)), date('Y-m-d', strtotime($to)) ];
+        public function setPrice($price){
+            if(is_float($price)){
+                $this->price = number_format($price, 2, '.', '');
             }
+        }
+
+        public function setDescription($description){
+            $this->description = $description;
+        }
+
+        public function setAvailabilityPeriod($availabilityPeriod){
+            foreach ($availabilityPeriod as $key => $date) {
+                $convertedDate =  $this->dateConverter($date);
+                if(DateTime::createFromFormat('m/d/y', $convertedDate) !== false && date('Y-m-d', strtotime($convertedDate)) != '1970-01-01'){
+                    $this->availabilityPeriod[] = date('Y-m-d', strtotime($convertedDate));
+                }
+            }
+        }
+
+        protected function dateConverter($date){
+            $tempArray = explode('/', $date);
+            return $tempArray[1] . "/" . $tempArray[0] . "/". date('y');
         }
 
         public function getName(){
             return $this->name;
         }
 
-        public function getPrice(){
+        public function getPrice($isRegistered){
+            if($isRegistered){
+                return $this->price * (1 - $this->discount);
+            }
             return $this->price;
         }
 
@@ -47,11 +61,12 @@
             return $this->description;
         }
 
-        public function calcDiscount($isRegistered){
-            if($isRegistered){
-                $this->price = $this->price * (1 - $this->discount);
-            }
+        public function getDiscount(){
+            return $this->discount;
         }
 
+        public function getAvailabilityPeriod(){
+            return $this->availabilityPeriod;
+        }
 
     }
